@@ -11,16 +11,16 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def get_gemini_json(prompt):
     try:
-        response = client.models.generate_content(
+        res = client.models.generate_content(
             model='gemini-flash-latest',
             contents=prompt,
             config=types.GenerateContentConfig(
-                response_mime_type="application/json"
+                res_mime_type="application/json"
             )
         )
-        # response.text might contain markdown code blocks if not careful, 
-        # but with response_mime_type="application/json", it should be clean.
-        return json.loads(response.text)
+        # res.text might contain markdown code blocks if not careful, 
+        # but with res_mime_type="application/json", it should be clean.
+        return json.loads(res.text)
     except Exception as e:
         print(f"Error calling Gemini: {e}")
         return None
@@ -58,11 +58,11 @@ def get_feedback(task, answer):
     Keep it concise (2-3 sentences).
     """
     try:
-        response = client.models.generate_content(
+        res = client.models.generate_content(
             model='gemini-flash-latest',
             contents=prompt
         )
-        return response.text
+        return res.text
     except Exception as e:
         print(f"Error getting feedback: {e}")
         return "Good job! Keep going."
@@ -81,12 +81,12 @@ def chat_with_agent(task, original_answer, chat_history):
     
     # We'll use the chat session feature of the SDK
     try:
-        response = client.models.generate_content(
+        res = client.models.generate_content(
             model='gemini-flash-latest',
             contents=chat_history,
             config=types.GenerateContentConfig(system_instruction=prompt)
         )
-        return response.text
+        return res.text
     except Exception as e:
         print(f"Error in chat: {e}")
         return "I'm having trouble connecting right now, but I hear your point!"
@@ -106,11 +106,11 @@ def compile_assignment(title, completed_tasks):
     Use appropriate headings if necessary.
     """
     try:
-        response = client.models.generate_content(
+        res = client.models.generate_content(
             model='gemini-flash-latest',
             contents=prompt
         )
-        return response.text
+        return res.text
     except Exception as e:
         print(f"Error compiling assignment: {e}")
         return "Failed to compile assignment."
