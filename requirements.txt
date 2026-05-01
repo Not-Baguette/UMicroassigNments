@@ -2,3 +2,6 @@ google-genai
 python-dotenv
 win10toast
 pypdf
+SpeechRecognition
+pyttsx3
+pyaudio
