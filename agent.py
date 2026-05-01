@@ -1,0 +1,102 @@
+import state
+import llm
+import tools
+import time
+import logging
+import random
+import os
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Configurable limits (in seconds)
+MIN_SLEEP = 15 * 60  # 15 minutes
+MAX_SLEEP = 2 * 60 * 60  # 2 hours
+MATERIAL_SYNC_INTERVAL = 60 # Check every minute for new files
+
+def main():
+    logger.info("Starting Anti-Procrastination Micro-Assignment Agent (Local Mode)...")
+    
+    last_material_sync = 0
+    
+    while True:
+        current_state = state.load_state()
+        now = time.time()
+        
+        # 1. Material Sync Phase
+        if now - last_material_sync > MATERIAL_SYNC_INTERVAL:
+            logger.info("Checking for new materials in 'materials/' folder...")
+            local_materials = tools.check_local_materials()
+            
+            for material in local_materials:
+                material_id = material["id"]
+                if material_id not in current_state["active_assignments"]:
+                    logger.info(f"New material found: {material['title']}. Decomposing...")
+                    decomposition = llm.decompose_assignment(material['title'], material['description'])
+                    
+                    if decomposition and "tasks" in decomposition:
+                        current_state["active_assignments"][material_id] = {
+                            "title": material["title"],
+                            "description": material["description"],
+                            "pending_tasks": decomposition["tasks"],
+                            "completed_tasks": []
+                        }
+                        logger.info(f"Added {len(decomposition['tasks'])} micro-tasks for '{material['title']}'")
+            
+            state.save_state(current_state)
+            last_material_sync = now
+
+        # 2. Micro-Task Phase
+        task_found = False
+        for material_id, data in current_state["active_assignments"].items():
+            if data["pending_tasks"]:
+                task = data["pending_tasks"].pop(0)
+                
+                # Notify User
+                logger.info(f"Triggering micro-task for '{data['title']}'")
+                tools.show_notification("Quick Micro-Task", f"Material: {data['title']}\nTask: {task[:50]}...")
+                
+                print(f"\n--- MICRO-TASK: {data['title']} ---")
+                print(f"[Agent] {task}")
+                user_answer = input("[User] (Type your answer and press Enter): ")
+                
+                data["completed_tasks"].append({
+                    "task": task,
+                    "answer": user_answer
+                })
+                
+                state.save_state(current_state)
+                task_found = True
+                
+                # Check if this was the last task
+                if not data["pending_tasks"]:
+                    logger.info(f"Material '{data['title']}' complete! Compiling...")
+                    final_doc = llm.compile_assignment(data['title'], data['completed_tasks'])
+                    
+                    filename = f"final_{material_id}.md"
+                    # Clean filename if it contains extensions
+                    filename = filename.replace(".txt", "").replace(".md", "")
+                    if not filename.endswith(".md"):
+                        filename += ".md"
+                        
+                    with open(filename, "w", encoding="utf-8") as f:
+                        f.write(final_doc)
+                    
+                    logger.info(f"Final document saved to {filename}")
+                    tools.show_notification("Study Session Complete!", f"Final notes for '{data['title']}' have been generated.")
+                
+                break # Only one task per loop iteration
+
+        # 3. Sleep Phase
+        if task_found:
+            # For testing purposes, maybe we want a shorter sleep? 
+            # But I'll stick to the requested behavior.
+            sleep_time = random.randint(MIN_SLEEP, MAX_SLEEP)
+            logger.info(f"Task completed. Sleeping for {sleep_time // 60} minutes...")
+            time.sleep(sleep_time)
+        else:
+            logger.info("No pending tasks. Checking again in 1 minute...")
+            time.sleep(60)
+
+if __name__ == "__main__":
+    main()
