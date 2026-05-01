@@ -10,6 +10,10 @@ This project is made for students who want to stay on top of their studies witho
 - **Progress Tracking**: The agent keeps track of your progress in a local JSON file, ensuring you can pick up where you left off.
 - **Final Compilation**: Once all micro-tasks are completed, the agent compiles your answers into a cohesive, clear document using Gemini.
 
+![Screenshot 1](images/1.png)
+
+![Screenshot 2](images/2.png)
+
 ## How It Works
 1. **Material Drops**: Drop your study materials (text or markdown files) into the `materials/` folder.
 2. **Decomposition**: Using the Google Gemini API, the agent analyzes the content and breaks it into 3-7 small tasks or questions.
@@ -47,4 +51,4 @@ python agent.py
 - `student_state.json`: Local database for progress tracking.
 - `materials/`: Folder where you drop your study materials.
 
-Made for Competition
+### Made for Agenthon Competition this time

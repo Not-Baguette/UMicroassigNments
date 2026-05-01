@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 # Configurable limits (in seconds)
 MIN_SLEEP = 15 * 60  # 15 minutes
 MAX_SLEEP = 2 * 60 * 60  # 2 hours
-MATERIAL_SYNC_INTERVAL = 60 # Check every minute for new files
+MATERIAL_SYNC_INTERVAL = 1200  # 20 minutes
 
 def main():
-    logger.info("Starting Anti-Procrastination Micro-Assignment Agent (Local Mode)...")
+    logger.info("Starting UMNMicroassigNment Agent...")
     
     last_material_sync = 0
     
@@ -24,7 +24,7 @@ def main():
         current_state = state.load_state()
         now = time.time()
         
-        # 1. Material Sync Phase
+        # Material Sync
         if now - last_material_sync > MATERIAL_SYNC_INTERVAL:
             logger.info("Checking for new materials in 'materials/' folder...")
             local_materials = tools.check_local_materials()
@@ -47,13 +47,13 @@ def main():
             state.save_state(current_state)
             last_material_sync = now
 
-        # 2. Micro-Task Phase
+        # Micro-Task
         task_found = False
         for material_id, data in current_state["active_assignments"].items():
             if data["pending_tasks"]:
                 task = data["pending_tasks"].pop(0)
                 
-                # Show Interactive Popup (Pinned on Top)
+                # Show Interactive Popup (Pinned on Top to incentivize completion)
                 logger.info(f"Triggering interactive micro-task for '{data['title']}'")
                 user_answer = tools.show_interactive_popup(data['title'], task)
                 
@@ -87,10 +87,8 @@ def main():
                 
                 break # Only one task per loop iteration
 
-        # 3. Sleep Phase
+        # wait for next task or material sync
         if task_found:
-            # For testing purposes, maybe we want a shorter sleep? 
-            # But I'll stick to the requested behavior.
             sleep_time = random.randint(MIN_SLEEP, MAX_SLEEP)
             logger.info(f"Task completed. Sleeping for {sleep_time // 60} minutes...")
             time.sleep(sleep_time)
