@@ -5,6 +5,7 @@ import time
 import logging
 import random
 import os
+from tkinter import messagebox
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -52,38 +53,37 @@ def main():
             if data["pending_tasks"]:
                 task = data["pending_tasks"].pop(0)
                 
-                # Notify User
-                logger.info(f"Triggering micro-task for '{data['title']}'")
-                tools.show_notification("Quick Micro-Task", f"Material: {data['title']}\nTask: {task[:50]}...")
+                # Show Interactive Popup (Pinned on Top)
+                logger.info(f"Triggering interactive micro-task for '{data['title']}'")
+                user_answer = tools.show_interactive_popup(data['title'], task)
                 
-                print(f"\n--- MICRO-TASK: {data['title']} ---")
-                print(f"[Agent] {task}")
-                user_answer = input("[User] (Type your answer and press Enter): ")
-                
-                data["completed_tasks"].append({
-                    "task": task,
-                    "answer": user_answer
-                })
-                
-                state.save_state(current_state)
-                task_found = True
-                
-                # Check if this was the last task
-                if not data["pending_tasks"]:
-                    logger.info(f"Material '{data['title']}' complete! Compiling...")
-                    final_doc = llm.compile_assignment(data['title'], data['completed_tasks'])
+                if user_answer is not None:
+                    data["completed_tasks"].append({
+                        "task": task,
+                        "answer": user_answer
+                    })
                     
-                    filename = f"final_{material_id}.md"
-                    # Clean filename if it contains extensions
-                    filename = filename.replace(".txt", "").replace(".md", "")
-                    if not filename.endswith(".md"):
-                        filename += ".md"
+                    state.save_state(current_state)
+                    task_found = True
+                    
+                    # Check if this was the last task
+                    if not data["pending_tasks"]:
+                        logger.info(f"Material '{data['title']}' complete! Compiling...")
+                        final_doc = llm.compile_assignment(data['title'], data['completed_tasks'])
                         
-                    with open(filename, "w", encoding="utf-8") as f:
-                        f.write(final_doc)
-                    
-                    logger.info(f"Final document saved to {filename}")
-                    tools.show_notification("Study Session Complete!", f"Final notes for '{data['title']}' have been generated.")
+                        filename = f"final_{material_id}.md"
+                        filename = filename.replace(".txt", "").replace(".md", "")
+                        if not filename.endswith(".md"):
+                            filename += ".md"
+                            
+                        with open(filename, "w", encoding="utf-8") as f:
+                            f.write(final_doc)
+                        
+                        logger.info(f"Final document saved to {filename}")
+                        messagebox.showinfo("Success", f"Session complete! Final notes saved to {filename}")
+                else:
+                    # User skipped/cancelled, put task back
+                    data["pending_tasks"].insert(0, task)
                 
                 break # Only one task per loop iteration
 

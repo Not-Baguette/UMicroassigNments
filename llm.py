@@ -47,6 +47,50 @@ def decompose_assignment(title, description):
     """
     return get_gemini_json(prompt)
 
+def get_feedback(task, answer):
+    prompt = f"""
+    You are a supportive academic tutor. 
+    The student was given this micro-task: "{task}"
+    Their answer was: "{answer}"
+    
+    Provide brief, constructive feedback. If the answer is correct or on the right track, acknowledge it. 
+    If there are gaps, gently point them out. 
+    Keep it concise (2-3 sentences).
+    """
+    try:
+        response = client.models.generate_content(
+            model='gemini-flash-latest',
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        print(f"Error getting feedback: {e}")
+        return "Good job! Keep going."
+
+def chat_with_agent(task, original_answer, chat_history):
+    # chat_history is a list of {"role": "user/model", "parts": [{"text": "..."}]}
+    prompt = f"""
+    You are a supportive academic tutor. 
+    The original task was: "{task}"
+    The student's initial answer was: "{original_answer}"
+    
+    The student wants to 'argue' or discuss their answer further. 
+    Be encouraging but maintain academic rigor. 
+    Discuss the topic with them based on the provided history.
+    """
+    
+    # We'll use the chat session feature of the SDK
+    try:
+        response = client.models.generate_content(
+            model='gemini-flash-latest',
+            contents=chat_history,
+            config=types.GenerateContentConfig(system_instruction=prompt)
+        )
+        return response.text
+    except Exception as e:
+        print(f"Error in chat: {e}")
+        return "I'm having trouble connecting right now, but I hear your point!"
+
 def compile_assignment(title, completed_tasks):
     tasks_text = json.dumps(completed_tasks, indent=2)
     prompt = f"""
