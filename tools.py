@@ -5,8 +5,6 @@ from tkinter import scrolledtext, messagebox
 from pypdf import PdfReader
 import llm
 import speech_recognition as sr
-import pyttsx3
-import threading
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -60,10 +58,6 @@ class InteractivePopup:
         
         self.task_label = tk.Label(task_frame, text=task, wraplength=500, justify="left", font=("Arial", 10))
         self.task_label.pack(side=tk.LEFT)
-        
-        self.read_task_btn = tk.Button(task_frame, text="🔊 Read Task", command=lambda: self.speak_text(task), 
-                                     bg="#2196F3", fg="white", width=10, height=1)
-        self.read_task_btn.pack(side=tk.RIGHT, padx=(10, 0))
         
         tk.Label(self.root, text="YOUR ANSWER:", font=("Arial", 10, "bold")).pack(pady=5)
         
