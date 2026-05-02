@@ -59,4 +59,8 @@ python agent.py
 - `student_state.json`: Local database for progress tracking.
 - `materials/`: Folder where you drop your study materials.
 
-### Made for Agenthon Competition this time
+## Todo
+- [ ] Make a watchdog to monitor the `materials/` folder for new files.
+- [ ] Support for .docx and .pptx
+- [ ] Make the code not Windows specific (Currently uses win10toast for notifications).
+- [ ] Improve GUI (Maybe since it uses tkinter, design isnt the best).
