@@ -4,9 +4,60 @@ import tkinter as tk
 from tkinter import scrolledtext, messagebox
 from pypdf import PdfReader
 import llm
+import platform
+import subprocess
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def send_notification(title, message, timeout=10000):
+    """
+    Cross-platform notification system.
+    Works on Windows, macOS, and Linux.
+    Falls back to logging if notification fails.
+    """
+    system = platform.system()
+    
+    try:
+        if system == "Windows":
+            # Try using plyer first (cross-platform)
+            try:
+                from plyer import notification
+                notification.notify(
+                    title=title,
+                    message=message,
+                    timeout=timeout // 1000  # plyer uses seconds
+                )
+                logger.info(f"Notification sent: {title}")
+                return True
+            except Exception:
+                # Fallback to Windows native
+                try:
+                    from win10toast import ToastNotifier
+                    ToastNotifier().show_toast(title, message, duration=timeout // 1000)
+                    logger.info(f"Notification sent (win10toast): {title}")
+                    return True
+                except Exception as e:
+                    logger.warning(f"Failed to send Windows notification: {e}")
+        
+        elif system == "Darwin":  # macOS
+            script = f'display notification "{message}" with title "{title}"'
+            subprocess.run(["osascript", "-e", script], check=False)
+            logger.info(f"Notification sent (macOS): {title}")
+            return True
+        
+        elif system == "Linux":
+            # Try notify-send (most Linux systems)
+            subprocess.run(["notify-send", title, message], check=False)
+            logger.info(f"Notification sent (Linux): {title}")
+            return True
+    
+    except Exception as e:
+        logger.warning(f"Notification failed: {e}")
+    
+    # Fallback: Log to console
+    logger.info(f"NOTIFICATION: {title} - {message}")
+    return False
 
 def check_local_materials(materials_dir="materials"):
     materials = []
