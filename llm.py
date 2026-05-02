@@ -100,9 +100,9 @@ def compile_assignment(title, completed_tasks):
     Prompts and Answers:
     {tasks_text}
     
-    Your task is to weave these disjointed answers into one cohesive, formal, and well-structured academic summary or document. 
+    Your task is to weave these disjointed answers into one cohesive, personalized, and well-structured academic summary or document. 
     Remove any conversational tone, 'I think', or references to the prompts themselves. 
-    The output should look like a finished essay or report.
+    The output should be a personalized, polished piece of writing that maximizes the use of the student's own words while covering their weaknesses without mentioning it.
     Use appropriate headings if necessary.
     """
     try:
