@@ -1,6 +1,6 @@
 # UMicroassigNment - Anti-Procrastination Micro-Assignment Agent
 
-Need to learn but don't feel like it? UMNMicroassigNment is here to help! This project is a proof-of-concept for an AI agent that breaks down large assignments or study materials into small, manageable tasks and delivers them to you via Windows toast notifications at randomized intervals. The goal is to make studying less overwhelming and more consistent, helping you stay on track without feeling like you're facing a mountain of work.
+Need to learn but don't feel like it? UMicroassigNment is here to help! This project is a proof-of-concept for an AI agent that breaks down large assignments or study materials into small, manageable tasks and delivers them to you via Windows toast notifications at randomized intervals. The goal is to make studying less overwhelming and more consistent, helping you stay on track without feeling like you're facing a mountain of work.
 
 This project is made for students who want to stay on top of their studies without the stress of procrastination. By breaking down your materials into bite-sized pieces and prompting you regularly, UMNMicroassigNment helps you make steady progress and keeps you motivated.
 
