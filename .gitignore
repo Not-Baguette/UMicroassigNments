@@ -1,5 +1,6 @@
 .env
 __pycache__/llm.cpython-313.pyc
 __pycache__/tools.cpython-313.pyc
+.venv
 student_state.json
 final_Materi-IF431-M10-Space and Time Trade-Offs-Gnp2025-2026.pdf.md

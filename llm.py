@@ -1,8 +1,9 @@
 import os
-from google import genai
+import google.genai as genai
 from google.genai import types
 from dotenv import load_dotenv
 import json
+import re
 
 load_dotenv()
 
@@ -13,14 +14,61 @@ def get_gemini_json(prompt):
     try:
         res = client.models.generate_content(
             model='gemini-flash-latest',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                res_mime_type="application/json"
-            )
+            contents=prompt
         )
-        # res.text might contain markdown code blocks if not careful, 
-        # but with res_mime_type="application/json", it should be clean.
-        return json.loads(res.text)
+        text = getattr(res, "text", "") or ""
+
+        # Try direct JSON parse
+        try:
+            return json.loads(text)
+        except Exception:
+            pass
+
+        # if that doesnt workTry fenced code block extraction (```json or ```)
+        m = re.search(r"```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```", text, re.S | re.I)
+        if m:
+            candidate = m.group(1)
+            try:
+                return json.loads(candidate)
+            except Exception:
+                pass
+
+        # try locate the first JSON object/array by brace/bracket matching
+        def find_json_by_braces(s: str):
+            for i, ch in enumerate(s):
+                if ch in "[{":
+                    open_ch = ch
+                    close_ch = "]" if ch == "[" else "}"
+                    depth = 1
+                    j = i + 1
+                    while j < len(s) and depth > 0:
+                        if s[j] == open_ch:
+                            depth += 1
+                        elif s[j] == close_ch:
+                            depth -= 1
+                        j += 1
+                    if depth == 0:
+                        return s[i:j]
+            return None
+
+        candidate = find_json_by_braces(text)
+        if candidate:
+            try:
+                return json.loads(candidate)
+            except Exception:
+                pass
+
+        matches = re.findall(r"\{.*?\}|\[.*?\]", text, re.S)
+        # prefer longer matches
+        matches.sort(key=len, reverse=True)
+        for m2 in matches:
+            try:
+                return json.loads(m2)
+            except Exception:
+                continue
+
+        # If none of the above worked, raise to caller so they can handle it
+        raise ValueError("Could not parse JSON from Gemini response")
     except Exception as e:
         print(f"Error calling Gemini: {e}")
         return None
@@ -79,12 +127,27 @@ def chat_with_agent(task, original_answer, chat_history):
     Discuss the topic with them based on the provided history.
     """
     
-    # We'll use the chat session feature of the SDK
+    # Format chat history into a single string and prepend system instruction
     try:
+        if isinstance(chat_history, list):
+            parts = []
+            for entry in chat_history:
+                role = entry.get('role', 'user')
+                # entry may have 'parts' which is a list of {'text': ...}
+                text = ''
+                if isinstance(entry.get('parts'), list):
+                    text = ' '.join(p.get('text', '') for p in entry.get('parts'))
+                else:
+                    text = str(entry)
+                parts.append(f"[{role}] {text}")
+            history_text = "\n".join(parts)
+        else:
+            history_text = str(chat_history)
+
+        full_prompt = prompt + "\n\nChat history:\n" + history_text
         res = client.models.generate_content(
             model='gemini-flash-latest',
-            contents=chat_history,
-            config=types.GenerateContentConfig(system_instruction=prompt)
+            contents=full_prompt
         )
         return res.text
     except Exception as e:
