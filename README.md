@@ -37,12 +37,14 @@ The agent doesn't just summarize; it curates.
 Your progress and final notes are kept separate for each material you upload, ensuring a clean and organized study environment.
 
 ![Personalized Notes Organization](images/personalizednotes.png)
+
 *Notes are organized and tracked per document.*
 
 ### Curated for You
 The final output is a polished academic document tailored to your learning style. It prioritizes covering your identified knowledge gaps, making it perfect for either completing an assignment or focused studying.
 
 ![Final Curated Notes](images/finalnotes.png)
+
 *Final notes covering knowledge gaps and providing a cohesive summary.*
 
 ## Prerequisites
